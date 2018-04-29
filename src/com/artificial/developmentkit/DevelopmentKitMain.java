@@ -1,46 +1,45 @@
 package com.artificial.developmentkit;
 
-import com.artificial.cachereader.fs.CacheSystem;
+import com.artificial.cachereader.fs.RT4CacheSystem;
+import com.artificial.cachereader.wrappers.Wrapper;
+import com.artificial.cachereader.wrappers.WrapperLoader;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import javax.swing.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.util.concurrent.atomic.AtomicReference;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DevelopmentKitMain {
-    private static final Object lock = new Object();
+    private static final List<Wrapper<?>> CACHED_DEFINITIONS = new ArrayList<>();
+    private static final List<String> CACHED_DISPLAY_NAMES = new ArrayList<>();
 
-    public static void main(String[] args) {
-        final AtomicReference<CacheSystem> cache = new AtomicReference<>(null);
-        final AtomicReference<TypeLoader[]> typeLoaders = new AtomicReference<>(null);
+    public static void main(String[] args) throws IOException {
+        RT4CacheSystem cache = new RT4CacheSystem();
+        TypeLoader.RT4 typeLoader = TypeLoader.RT4.values()[0];
 
-        SwingUtilities.invokeLater(() -> {
-            final GameTypeSelectionPanel selectionPanel = new GameTypeSelectionPanel();
-            selectionPanel.setVisible(true);
-            selectionPanel.addWindowListener(new WindowAdapter() {
-                @Override
-                public void windowClosed(WindowEvent e) {
-                    cache.set(selectionPanel.getCache());
-                    typeLoaders.set(selectionPanel.getTypeLoaders());
-                    synchronized (lock) {
-                        lock.notifyAll();
-                    }
+        final WrapperLoader<?, ?> loader = cache.getLoader(typeLoader.getWrapperClass());
+        final DefaultListModel<String> listModel = new DefaultListModel<>();
+
+        for (int i = 0; i < 200000; i++) {
+            if (loader.canLoad(i)) {
+                final Wrapper<?> def;
+                CACHED_DEFINITIONS.add(def = loader.load(i));
+                final StringBuilder builder = new StringBuilder();
+                if (def.getDeclaredFields().containsKey("name")) {
+                    builder.append(def.getDeclaredFields().get("name")).append(" (").append(i).append(")");
+                } else {
+                    builder.append(i);
                 }
-            });
-        });
-
-        synchronized (lock) {
-            try {
-                lock.wait();
-            } catch (InterruptedException ignored) {
+                listModel.addElement(builder.toString());
+                CACHED_DISPLAY_NAMES.add(builder.toString());
             }
         }
 
-        if (cache.get() == null || typeLoaders.get() == null) {
-            JOptionPane.showMessageDialog(null, "Failed to load Development kit!", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        SwingUtilities.invokeLater(() -> new DevelopmentKit(cache.get(), typeLoaders.get()).setVisible(true));
+        Gson gson = new GsonBuilder().create();
+        gson.toJson(CACHED_DISPLAY_NAMES, System.out);
     }
 }

@@ -105,20 +105,20 @@ class DevelopmentKit extends JFrame {
         CACHED_DISPLAY_NAMES.clear();
         final WrapperLoader<?, ?> loader = cache.getLoader(typeLoader.getWrapperClass());
         final DefaultListModel<String> listModel = new DefaultListModel<>();
-        for (int i = 0; i < LOAD_LIMIT; i++) {
-            if (loader.canLoad(i)) {
-                final Wrapper<?> def;
-                CACHED_DEFINITIONS.add(def = loader.load(i));
-                final StringBuilder builder = new StringBuilder();
-                if (def.getDeclaredFields().containsKey("name")) {
-                    builder.append(def.getDeclaredFields().get("name")).append(" (").append(i).append(")");
-                } else {
-                    builder.append(i);
-                }
-                listModel.addElement(builder.toString());
-                CACHED_DISPLAY_NAMES.add(builder.toString());
-            }
-        }
+//        for (int i = 0; i < LOAD_LIMIT; i++) {
+//            if (loader.canLoad(i)) {
+//                final Wrapper<?> def;
+//                CACHED_DEFINITIONS.add(def = loader.load(i));
+//                final StringBuilder builder = new StringBuilder();
+//                if (def.getDeclaredFields().containsKey("name")) {
+//                    builder.append(def.getDeclaredFields().get("name")).append(" (").append(i).append(")");
+//                } else {
+//                    builder.append(i);
+//                }
+//                listModel.addElement(builder.toString());
+//                CACHED_DISPLAY_NAMES.add(builder.toString());
+//            }
+//        }
         filteredObjectsList.setModel(listModel);
     }
 

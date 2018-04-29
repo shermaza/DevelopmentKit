@@ -41,20 +41,21 @@ public class DevelopmentKitMain {
         HashMap<Integer, HashMap> items = new HashMap<>();
 
         for (final Wrapper<?> def : CACHED_DEFINITIONS) {
-            if(def == null)
+            if (def == null)
                 continue;
             final HashMap<String, Object> properties = new HashMap();
 
             for (final Map.Entry<String, Object> entry : def.getDeclaredFields().entrySet()) {
-                properties.put(entry.getKey(), entry.getValue());
+                if (entry.getKey().equals("name") ||entry.getKey().equals("stackable") || entry.getKey().equals("members") || entry.getKey().equals("price") || entry.getKey().equals("noted")) {
+                    properties.put(entry.getKey(), entry.getValue());
+                }
             }
 
             items.put(def.id(), properties);
         }
 
-
-        Writer writer = new FileWriter("item.json");
-        Gson gson = new GsonBuilder().create();
+        Writer writer = new FileWriter("items.json");
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
         gson.toJson(items, writer);
     }
 }

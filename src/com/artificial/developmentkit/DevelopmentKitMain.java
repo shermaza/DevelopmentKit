@@ -7,11 +7,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import javax.swing.*;
-import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.Writer;
+import java.util.*;
 
 public class DevelopmentKitMain {
     private static final List<Wrapper<?>> CACHED_DEFINITIONS = new ArrayList<>();
@@ -39,7 +38,23 @@ public class DevelopmentKitMain {
             }
         }
 
+        HashMap<Integer, HashMap> items = new HashMap<>();
+
+        for (final Wrapper<?> def : CACHED_DEFINITIONS) {
+            if(def == null)
+                continue;
+            final HashMap<String, Object> properties = new HashMap();
+
+            for (final Map.Entry<String, Object> entry : def.getDeclaredFields().entrySet()) {
+                properties.put(entry.getKey(), entry.getValue());
+            }
+
+            items.put(def.id(), properties);
+        }
+
+
+        Writer writer = new FileWriter("item.json");
         Gson gson = new GsonBuilder().create();
-        gson.toJson(CACHED_DISPLAY_NAMES, System.out);
+        gson.toJson(items, writer);
     }
 }

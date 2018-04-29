@@ -38,24 +38,58 @@ public class DevelopmentKitMain {
             }
         }
 
-        HashMap<Integer, HashMap> items = new HashMap<>();
+        // Break JSON files into a small amount items each
+        int JSON_SIZE = 25000;
+        int iterations = (CACHED_DEFINITIONS.size() / JSON_SIZE);
 
-        for (final Wrapper<?> def : CACHED_DEFINITIONS) {
-            if (def == null)
-                continue;
-            final HashMap<String, Object> properties = new HashMap();
 
-            for (final Map.Entry<String, Object> entry : def.getDeclaredFields().entrySet()) {
-                if (entry.getKey().equals("name") ||entry.getKey().equals("stackable") || entry.getKey().equals("members") || entry.getKey().equals("price") || entry.getKey().equals("noted")) {
-                    properties.put(entry.getKey(), entry.getValue());
-                }
+        // For each iteration, write a JSON file with those items
+        for (int i = 1; i <= iterations + 1; i++) {
+
+            HashMap<Integer, HashMap> items = new HashMap<>();
+
+            // Determine the start item for the iteration
+            int start = (i-1) * JSON_SIZE;
+
+            // Determine the end item for the iteration
+            int end = start + JSON_SIZE;
+            if (end > CACHED_DEFINITIONS.size()){
+                end = CACHED_DEFINITIONS.size();
             }
 
-            items.put(def.id(), properties);
-        }
+            int cur = start;
 
-        Writer writer = new FileWriter("items.json");
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        gson.toJson(items, writer);
+
+            while (cur < end) {
+                Wrapper<?> def = CACHED_DEFINITIONS.get(cur);
+                cur++;
+                if (def == null)
+                    continue;
+
+                final HashMap<String, Object> properties = new HashMap<>();
+
+                int skip = 0;
+
+                for (final Map.Entry<String, Object> entry : def.getDeclaredFields().entrySet()) {
+                    if (entry.getKey().equals("name") ||entry.getKey().equals("stackable") || entry.getKey().equals("members") || entry.getKey().equals("price") || entry.getKey().equals("noted")) {
+                        if(entry.getKey().equals("name") && (entry.getValue().equals("Null") || entry.getValue().equals("null"))){
+                            skip = 1;
+                        }
+                        properties.put(entry.getKey(), entry.getValue());
+                    }
+                }
+
+                if(skip == 1) {
+                    continue;
+                }
+
+                items.put(def.id(), properties);
+            }
+
+            Writer writer = new FileWriter("items" + i + ".json");
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            gson.toJson(items, writer);
+            writer.close();
+        }
     }
 }
